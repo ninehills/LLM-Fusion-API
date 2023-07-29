@@ -2,6 +2,7 @@ from typing import List
 
 from .base import Model # noqa: F401
 from .openai import OpenAI  # noqa: F401
+from .wenxin import Wenxin  # noqa: F401
 
 
 def list_models(provider: str) -> List[Model]:
@@ -18,5 +19,12 @@ def list_models(provider: str) -> List[Model]:
             Model(provider="openai", name="gpt-4-32k", type="chat"),
             Model(provider="openai", name="gpt-4-32k-0613", type="chat"),
             Model(provider="openai", name="text-embedding-ada-002", type="embedding"),
+        ]
+    elif provider == "wenxin":
+        return [
+            Model(provider="wenxin", name="ernie-bot", type="chat"),
+            Model(provider="wenxin", name="ernie-bot-turbo", type="chat"),
+            Model(provider="wenxin", name="bloomz_7b1", type="chat"),
+            Model(provider="wenxin", name="embedding-v1", type="embedding"),
         ]
     raise NotImplementedError(f"Unknown provider: {provider}")

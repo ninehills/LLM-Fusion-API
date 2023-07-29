@@ -8,7 +8,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from llm_fusion_api import settings
 from llm_fusion_api.response import ErrorResponse
-from llm_fusion_api.provider import list_models, Model, OpenAI
+from llm_fusion_api.provider import list_models, Model, OpenAI, Wenxin
 
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +42,9 @@ class App(Starlette):
         if settings.OPENAI_API_KEY:
             self.models.extend(list_models("openai"))
             self.providers['openai'] = OpenAI(settings.OPENAI_API_BASE, str(settings.OPENAI_API_KEY))
-
+        if settings.WENXIN_API_KEY and settings.WENXIN_SECRET_KEY:
+            self.models.extend(list_models("wenxin"))
+            self.providers['wenxin'] = Wenxin(str(settings.WENXIN_API_KEY), str(settings.WENXIN_SECRET_KEY))
 
     async def homepage(self, request):
         """GET /"""
@@ -56,7 +58,7 @@ class App(Starlette):
         response = [
             {
                 "created": 1677610602,
-                "id": model.name,
+                "id": model.name if model.provider == "openai" else model.provider + "/" + model.name,
                 "object": "model",
                 "owned_by": model.provider,
                 "permission": [
@@ -81,7 +83,7 @@ class App(Starlette):
             for model in self.models
         ]
 
-        return JSONResponse(response)
+        return JSONResponse(dict(data=response))
 
     async def chat_completions(self, request: Request) -> JSONResponse:
         """POST /v1/chat/completions

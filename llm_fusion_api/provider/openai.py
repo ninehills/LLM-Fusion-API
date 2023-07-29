@@ -20,7 +20,7 @@ class OpenAI(ChatHandler):
             "Content-Type": "application/json",
         }
         body = await request.body()
-        logger.info(f"Proxying request to {self.openai_api_base + path}, headers: {headers}, body: {body}")
+        logger.info(f"OpenAI Proxying request to {self.openai_api_base + path}, headers: {headers}, body: {body}")
 
         async with httpx.AsyncClient() as client:
             response = await client.request(

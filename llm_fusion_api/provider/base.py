@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import Response
 
 class Model(object):
     provider: str
@@ -16,7 +16,7 @@ class Model(object):
 
 class ChatHandler(ABC):
     @abstractmethod
-    async def chat_completions(self, request: Request) -> JSONResponse:
+    async def chat_completions(self, request: Request) -> Response:
         """POST /v1/chat/completions
 
         https://platform.openai.com/docs/api-reference/chat
@@ -26,7 +26,7 @@ class ChatHandler(ABC):
 
 class EmbeddingHandler(ABC):
     @abstractmethod
-    async def embeddings(self, request: Request) -> JSONResponse:
+    async def embeddings(self, request: Request) -> Response:
         """POST /v1/embeddings
 
         https://platform.openai.com/docs/api-reference/embeddings

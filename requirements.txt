@@ -1,3 +1,4 @@
 starlette
+sse-starlette
 uvicorn
 httpx
