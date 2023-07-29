@@ -2,12 +2,13 @@ import json
 import time
 import httpx
 import logging
+from typing import List
 
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
-from llm_fusion_api.provider.base import ChatHandler
+from llm_fusion_api.provider.base import ChatHandler, Model
 from llm_fusion_api.response import ErrorResponse
 
 
@@ -20,6 +21,15 @@ class Wenxin(ChatHandler):
     def __init__(self, wenxin_api_key: str, wenxin_secret_key: str):
         self.wenxin_api_key = wenxin_api_key
         self.wenxin_secret_key = wenxin_secret_key
+
+    async def list_models(self) -> List[Model]:
+        """List all models from OpenAI API"""
+        return [
+            Model(provider="wenxin", name="ernie-bot", type="chat"),
+            Model(provider="wenxin", name="ernie-bot-turbo", type="chat"),
+            Model(provider="wenxin", name="bloomz_7b1", type="chat"),
+            Model(provider="wenxin", name="embedding-v1", type="embedding"),
+        ]
 
     async def get_token(self):
         url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials" +\

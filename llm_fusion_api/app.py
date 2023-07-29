@@ -8,16 +8,13 @@ from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from llm_fusion_api import settings
 from llm_fusion_api.response import ErrorResponse
-from llm_fusion_api.provider import list_models, Model, OpenAI, Wenxin
+from llm_fusion_api.provider import Model, OpenAI, Wenxin
 
 
 logging.basicConfig(level=logging.INFO)
 
 
 class App(Starlette):
-    # All available models.
-    models: List[Model] = []
-
     # All providers.
     providers = {}
 
@@ -40,11 +37,19 @@ class App(Starlette):
     def load_variables(self):
         self.models = []
         if settings.OPENAI_API_KEY:
-            self.models.extend(list_models("openai"))
             self.providers['openai'] = OpenAI(settings.OPENAI_API_BASE, str(settings.OPENAI_API_KEY))
         if settings.WENXIN_API_KEY and settings.WENXIN_SECRET_KEY:
-            self.models.extend(list_models("wenxin"))
             self.providers['wenxin'] = Wenxin(str(settings.WENXIN_API_KEY), str(settings.WENXIN_SECRET_KEY))
+        if settings.FASTCHAT_OPENAI_API_BASE:
+            self.providers['fastchat'] = OpenAI(
+                settings.FASTCHAT_OPENAI_API_BASE, str(settings.FASTCHAT_OPENAI_API_KEY), "fastchat")
+
+    async def list_models(self) -> List[Model]:
+        """List all models from all providers."""
+        models = []
+        for provider in self.providers.values():
+            models.extend(await provider.list_models())
+        return models
 
     async def homepage(self, request):
         """GET /"""
@@ -55,6 +60,7 @@ class App(Starlette):
 
         https://platform.openai.com/docs/api-reference/models
         """
+        models = await self.list_models()
         response = [
             {
                 "created": 1677610602,
@@ -80,7 +86,7 @@ class App(Starlette):
                 "root": model.name,
                 "parent": None,
             }
-            for model in self.models
+            for model in models
         ]
 
         return JSONResponse(dict(data=response))

@@ -1,5 +1,14 @@
 # LLM-Fusion-API
 
+## Todo
+
+1. support minimax
+2. support chatglm
+3. support fastchat in local mode
+    - api_tunnel.py
+4. support embedding api
+
+
 ## Running the API
 
 ```bash
