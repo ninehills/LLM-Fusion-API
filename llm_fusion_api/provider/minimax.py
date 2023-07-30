@@ -1,6 +1,4 @@
 import json
-from math import e
-import uu
 import uuid
 import httpx
 import logging
@@ -73,7 +71,7 @@ class MiniMax(ChatHandler):
                     if not line.startswith("data: "):
                         continue
                     payload = json.loads(line[6:].strip())
-                    logger.info(f"Wenxin stream response: {payload}")
+                    logger.info(f"MiniMax stream response: {payload}")
                     if first:
                         first = False
                         first_payload = {
@@ -126,7 +124,8 @@ def convert_request(body):
         mm_body["temperature"] = min(max(body["temperature"], 0.001), 1)
     if "n" in body:
         mm_body["beam_width"] = max(min(body["n"], 4), 1)
-
+    if "top_p" in body:
+        mm_body["top_p"] = body["top_p"]
     return mm_body
 
 def convert_response(body, model):

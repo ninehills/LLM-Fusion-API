@@ -22,3 +22,5 @@ FASTCHAT_OPENAI_API_KEY: Secret = config('FASTCHAT_OPENAI_API_KEY', cast=Secret,
 # MiniMax API settings
 MINIMAX_GROUP_ID: Secret = config('MINIMAX_GROUP_ID', cast=Secret, default=Secret(''))
 MINIMAX_API_KEY: Secret = config('MINIMAX_API_KEY', cast=Secret, default=Secret(''))
+# Zhipu API settings
+ZHIPU_API_KEY: Secret = config('ZHIPU_API_KEY', cast=Secret, default=Secret(''))

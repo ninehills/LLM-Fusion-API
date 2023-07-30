@@ -6,23 +6,26 @@
 - [Wenxin](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/flfmc9do2)
 - [FastChat](https://github.com/lm-sys/FastChat/blob/main/docs/openai_api.md)
 - [MiniMax](https://api.minimax.chat/)
+- [Zhipu](https://open.bigmodel.cn/doc/api#overview)
+    - Also known as ChatGLM.
 
 ## OpenAI API Compatibility
 
 ### Chat Completion
 
-| API | function | stream | temperature | top_p | n | stop | max_tokens | presence_penalty | frequency_penalty | logit_bias |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| OpenAI | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
-| Wenxin | ❌ | ✔️ | ✔️ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| FastChat | ❌ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ❌ | ❌ | ❌ |
-| MiniMax | ❌ | ✔️ | ✔️ | ❌ | ✔️ | ❌ | ✔️ | ❌ | ❌ | ❌ |
+| API | system message | function | stream | temperature | top_p | n | stop | max_tokens | presence_penalty | frequency_penalty | logit_bias |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OpenAI | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
+| Wenxin | ❌* |❌ | ✔️ | ✔️ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| FastChat | ✔️ | ❌ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ | ❌ | ❌ | ❌ |
+| MiniMax | ✔️ | ❌ | ✔️ | ✔️ | ✔️ | ✔️ | ❌ | ✔️ | ❌ | ❌ | ❌ |
+| Zhipu | ❌ | ❌ | ✔️ | ✔️ | ✔️ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 TODO:
 
 1. support minimax function call
-2. support chatglm
-3. support embedding api
+2. support embedding api
+3. add a simple frontend
 
 ## Running the API
 

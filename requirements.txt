@@ -2,3 +2,4 @@ starlette
 sse-starlette
 uvicorn
 httpx
+pyjwt
