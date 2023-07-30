@@ -5,7 +5,7 @@ from typing import List, Dict
 from starlette.requests import Request
 from starlette.background import BackgroundTask
 from starlette.responses import Response, StreamingResponse
-from .base import Model, ChatHandler
+from .base import Model, ChatHandler, EmbeddingHandler
 
 
 logger = logging.getLogger(__name__)
@@ -65,22 +65,16 @@ class OpenAI(ChatHandler):
                     ))
         return result
 
-    async def chat_completions(self, request: Request) -> Response:
-        """POST /v1/chat/completions
-
-        https://platform.openai.com/docs/api-reference/chat
-        """
+    async def proxy(self, path, body, request: Request) -> Response:
+        """Proxy to OpenAI API"""
         headers = self.get_headers()
-        body = await request.json()
-        url = self.openai_api_base + "/chat/completions"
+        url = self.openai_api_base + path
         logger.info(f"OpenAI Proxying request to {url}, headers: {headers}, body: {body}")
-        if "model" in body:
-            body["model"] = body["model"].split("/")[-1]
 
         client = httpx.AsyncClient()
         req = client.build_request(
             request.method,
-            self.openai_api_base + "/chat/completions",
+            url,
             headers=headers,
             json=body, # type: ignore
         )
@@ -93,3 +87,20 @@ class OpenAI(ChatHandler):
             headers=res.headers,
             background=BackgroundTask(res.aclose)
         )
+
+    async def chat_completions(self, request: Request, model: str) -> Response:
+        """POST /v1/chat/completions
+
+        https://platform.openai.com/docs/api-reference/chat
+        """
+
+        body = await request.json()
+        body["model"] = model
+        return await self.proxy("/chat/completions", body, request)
+
+    async def embeddings(self, request: Request, model: str) -> Response:
+        """https://platform.openai.com/docs/api-reference/embeddings
+        """
+        body = await request.json()
+        body["model"] = model
+        return await self.proxy("/embeddings", body, request)

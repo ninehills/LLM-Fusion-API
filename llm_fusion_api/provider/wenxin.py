@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
-from llm_fusion_api.provider.base import ChatHandler, Model
+from llm_fusion_api.provider.base import ChatHandler, Model, EmbeddingHandler
 from llm_fusion_api.response import ErrorResponse
 
 
@@ -51,15 +51,13 @@ class Wenxin(ChatHandler):
 
         return self.cached_token
 
-    async def chat_completions(self, request: Request) -> Response:
+    async def chat_completions(self, request: Request, model: str) -> Response:
         """https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11
         """
         token = await self.get_token()
         body = await request.json()
-        logger.info(f"Wenxin request: {body}")
         new_body = convert_request(body)
 
-        model = body.get('model', '').split('/')[-1]
         if model == 'ernie-bot':
             endpoint = "completions"
         elif model == 'ernie-bot-turbo':
@@ -113,6 +111,46 @@ class Wenxin(ChatHandler):
             yield "[DONE]"
 
         return EventSourceResponse(stream_generator())
+
+    async def embeddings(self, request: Request, model: str) -> Response:
+        """https://cloud.baidu.com/doc/WENXINWORKSHOP/s/alj562vvu
+        """
+        body = await request.json()
+        if isinstance(body['input'], str):
+            inputs = [body['input']]
+        else:
+            inputs = body['input']
+        for i, input in enumerate(inputs):
+            # Wenxin only supports 384 tokens
+            inputs[i] = input[:384]
+        new_body = {'input': inputs}
+
+        kwargs = dict(
+            url=f"https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/embeddings/{model}",
+            headers={"Content-Type": "application/json"},
+            params={"access_token": await self.get_token()},
+            json=new_body
+        )
+        logger.info(f"Wenxin request to {kwargs}")
+        async with httpx.AsyncClient() as client:
+            response: httpx.Response = await client.post(**kwargs) # type: ignore
+
+        response.raise_for_status()
+        res_body = response.json()
+        error_code = res_body.get("error_code", None)
+        if error_code:
+            if error_code == 110 or error_code == 111:
+                # Token expired
+                self.cached_token = ""
+            logger.error(f"Wenxin error: {error_code}")
+            return ErrorResponse(500, f"Wenxin error: {error_code}")
+        logger.info(f"Wenxin response: {res_body}")
+        return JSONResponse({
+            'model': model,
+            'object': 'list',
+            'usage': res_body['usage'],
+            'data': res_body['data']
+        })
 
 
 def convert_request(body):

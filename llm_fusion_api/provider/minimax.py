@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
-from llm_fusion_api.provider.base import ChatHandler, Model
+from llm_fusion_api.provider.base import ChatHandler, Model, EmbeddingHandler
 from llm_fusion_api.response import ErrorResponse
 
 
@@ -25,17 +25,16 @@ class MiniMax(ChatHandler):
         """List all models from MiniMax API"""
         return [
             Model(provider="minimax", name="abab5.5-chat", type="chat"),
-            Model(provider="minimax", name="embo-01", type="embedding"),
+            # MiniMax embedding models need `type` parameter what is not supported by OpenAI API.
+            # Model(provider="minimax", name="embo-01", type="embedding"),
         ]
 
-    async def chat_completions(self, request: Request) -> Response:
+    async def chat_completions(self, request: Request, model: str) -> Response:
         """https://api.minimax.chat/document/guides/chat?id=6433f37294878d408fc82953
         """
         body = await request.json()
-        logger.info(f"MiniMax request: {body}")
         new_body = convert_request(body)
 
-        model = body.get('model', '').split('/')[-1]
         stream = body.get('stream', False)
         kwargs = dict(
             url=self.chat_completion_url,

@@ -21,11 +21,14 @@
 | MiniMax | ✔️ | ❌ | ✔️ | ✔️ | ✔️ | ✔️ | ❌ | ✔️ | ❌ | ❌ | ❌ |
 | Zhipu | ❌ | ❌ | ✔️ | ✔️ | ✔️ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-TODO:
+### Emebeddings
 
-1. support minimax function call
-2. support embedding api
-3. add a simple frontend
+| API | model | max_tokens |
+| --- | --- | --- |
+| OpenAI | text-embedding-ada-002 | 8191  |
+| Wenxin | embedding-v1 | 384* |
+
+- If the input is longer than 384 tokens, it will be truncated.
 
 ## Running the API
 
@@ -42,9 +45,17 @@ cp .env.example .env
 uvicorn llm_fusion_api:app --reload
 ```
 
-### Test the API
+## Deploy
+
+Make docker image
 
 ```bash
+docker build -t ninehills/llm-fusion-api:latest .
+```
+
+### Test the API
+
+```txt
 $ curl localhost:8000/v1/models 2>/dev/null| jq ".data[].id"
 "gpt-3.5-turbo-16k-0613"
 "gpt-3.5-turbo-0301"
@@ -85,4 +96,21 @@ data: {"id": "abe9437a622c413abd157605efb6e228", "object": "chat.completion.chun
 data: {"id": "abe9437a622c413abd157605efb6e228", "object": "chat.completion.chunk", "created": 1690690250, "model": "abab5.5-chat", "choices": [{"index": 0, "delta": {"content": ""}, "finish_reason": "stop"}]}
 
 data: [DONE]
+
+$ curl http://localhost:8000/v1/embeddings \
+  -H "Authorization: Bearer xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "The food was delicious and the waiter...",
+    "model": "text-embedding-ada-002"
+  }'
+
+$ curl http://localhost:8000/v1/engines/text-embedding-ada-002/embeddings \
+  -H "Authorization: Bearer xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "The food was delicious and the waiter..."
+  }'
+
+
 ```

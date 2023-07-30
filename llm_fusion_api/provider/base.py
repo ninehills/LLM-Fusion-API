@@ -16,7 +16,7 @@ class Model(object):
 
 class ChatHandler(ABC):
     @abstractmethod
-    async def chat_completions(self, request: Request) -> Response:
+    async def chat_completions(self, request: Request, model: str) -> Response:
         """POST /v1/chat/completions
 
         https://platform.openai.com/docs/api-reference/chat
@@ -26,7 +26,7 @@ class ChatHandler(ABC):
 
 class EmbeddingHandler(ABC):
     @abstractmethod
-    async def embeddings(self, request: Request) -> Response:
+    async def embeddings(self, request: Request, model: str) -> Response:
         """POST /v1/embeddings
 
         https://platform.openai.com/docs/api-reference/embeddings

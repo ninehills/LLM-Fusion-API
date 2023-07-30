@@ -23,6 +23,8 @@ class App(Starlette):
             Route("/", endpoint=self.homepage, methods=['GET']),
             Route("/v1/models", endpoint=self.get_models, methods=['GET']),
             Route("/v1/chat/completions", endpoint=self.chat_completions, methods=['POST']),
+            Route("/v1/embeddings", endpoint=self.embeddings, methods=['POST']),
+            Route("/v1/engines/{model_name:path}/embeddings", endpoint=self.embeddings, methods=['POST']),
         ]
 
         middleware = [
@@ -110,7 +112,24 @@ class App(Starlette):
 
         if provider not in self.providers:
             return ErrorResponse(400, f'Provider {provider} not found')
-        return await self.providers[provider].chat_completions(request)
+        return await self.providers[provider].chat_completions(request, model)
+
+    async def embeddings(self, request: Request) -> JSONResponse:
+        """POST
+            /v1/embeddings
+            /v1/engines/{model_name}/embeddings
+        """
+        body = await request.json()
+        model = body.get('model', request.path_params.get('model_name'))
+        if '/' in model:
+            provider, model = model.split('/')
+        else:
+            # Default to OpenAI
+            provider = 'openai'
+
+        if provider not in self.providers:
+            return ErrorResponse(400, f'Provider {provider} not found')
+        return await self.providers[provider].embeddings(request, model)
 
 
 class SecretTokenAuthMiddleware(BaseHTTPMiddleware):
