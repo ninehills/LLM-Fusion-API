@@ -8,7 +8,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from llm_fusion_api import settings
 from llm_fusion_api.response import ErrorResponse
-from llm_fusion_api.provider import Model, OpenAI, Wenxin
+from llm_fusion_api.provider import Model, OpenAI, Wenxin, MiniMax
 
 
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +43,8 @@ class App(Starlette):
         if settings.FASTCHAT_OPENAI_API_BASE:
             self.providers['fastchat'] = OpenAI(
                 settings.FASTCHAT_OPENAI_API_BASE, str(settings.FASTCHAT_OPENAI_API_KEY), "fastchat")
+        if settings.MINIMAX_GROUP_ID and settings.MINIMAX_API_KEY:
+            self.providers['minimax'] = MiniMax(str(settings.MINIMAX_GROUP_ID), str(settings.MINIMAX_API_KEY))
 
     async def list_models(self) -> List[Model]:
         """List all models from all providers."""

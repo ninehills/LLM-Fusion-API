@@ -23,7 +23,7 @@ class Wenxin(ChatHandler):
         self.wenxin_secret_key = wenxin_secret_key
 
     async def list_models(self) -> List[Model]:
-        """List all models from OpenAI API"""
+        """List all models from Wenxin API"""
         return [
             Model(provider="wenxin", name="ernie-bot", type="chat"),
             Model(provider="wenxin", name="ernie-bot-turbo", type="chat"),
@@ -153,6 +153,8 @@ def convert_response(body, model):
         'model': model,
         'choices': [
             {
+                'finish_reason': "stop",
+                'index': 0,
                 'message': {
                     'role': "assistant",
                     'content': body['result'],

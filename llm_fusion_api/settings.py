@@ -3,19 +3,22 @@ from starlette.datastructures import Secret
 
 
 # Load environment variables from .env file
-config = Config(".env")
+config: Config = Config(".env")
 
 ## Settings
 # Debug mode
-DEBUG = config('DEBUG', cast=bool, default=False)
+DEBUG: bool = config('DEBUG', cast=bool, default=False)
 # Secret token for authentication
-SECRET_TOKEN = config('SECRET_TOKEN', cast=Secret, default='')
+SECRET_TOKEN: Secret = config('SECRET_TOKEN', cast=Secret, default=Secret(''))
 # OpenAI API settings
-OPENAI_API_BASE = config('OPENAI_API_BASE', default='https://api.openai.com/v1')
-OPENAI_API_KEY = config('OPENAI_API_KEY', cast=Secret, default='')
+OPENAI_API_BASE: str = config('OPENAI_API_BASE', default='https://api.openai.com/v1')
+OPENAI_API_KEY: Secret = config('OPENAI_API_KEY', cast=Secret, default=Secret(''))
 # Wenxin API settings
-WENXIN_API_KEY = config('WENXIN_API_KEY', cast=Secret, default='')
-WENXIN_SECRET_KEY = config('WENXIN_SECRET_KEY', cast=Secret, default='')
+WENXIN_API_KEY: Secret = config('WENXIN_API_KEY', cast=Secret, default=Secret(''))
+WENXIN_SECRET_KEY: Secret = config('WENXIN_SECRET_KEY', cast=Secret, default=Secret(''))
 # FastChat API settings
-FASTCHAT_OPENAI_API_BASE = config('FASTCHAT_OPENAI_API_BASE', default='')
-FASTCHAT_OPENAI_API_KEY = config('FASTCHAT_OPENAI_API_KEY', cast=Secret, default='')
+FASTCHAT_OPENAI_API_BASE: str = config('FASTCHAT_OPENAI_API_BASE', default='')
+FASTCHAT_OPENAI_API_KEY: Secret = config('FASTCHAT_OPENAI_API_KEY', cast=Secret, default=Secret(''))
+# MiniMax API settings
+MINIMAX_GROUP_ID: Secret = config('MINIMAX_GROUP_ID', cast=Secret, default=Secret(''))
+MINIMAX_API_KEY: Secret = config('MINIMAX_API_KEY', cast=Secret, default=Secret(''))
