@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
-from llm_fusion_api.provider.base import ChatHandler, Model, EmbeddingHandler
+from llm_fusion_api.provider.base import ChatHandler, Model
 from llm_fusion_api.response import ErrorResponse
 
 

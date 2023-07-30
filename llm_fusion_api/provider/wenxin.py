@@ -14,7 +14,7 @@ from llm_fusion_api.response import ErrorResponse
 
 logger = logging.getLogger(__name__)
 
-class Wenxin(ChatHandler):
+class Wenxin(ChatHandler, EmbeddingHandler):
     cached_token: str = ""
     cached_token_expires_at: int = 0
 

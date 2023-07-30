@@ -10,7 +10,7 @@ from .base import Model, ChatHandler, EmbeddingHandler
 
 logger = logging.getLogger(__name__)
 
-class OpenAI(ChatHandler):
+class OpenAI(ChatHandler, EmbeddingHandler):
     def __init__(self, openai_api_base: str, openai_api_key: str, provider: str = "openai"):
         self.openai_api_base = openai_api_base
         self.openai_api_key = openai_api_key
