@@ -4,7 +4,7 @@ LABEL maintainer="Tao Yang <swulling@gmail.com>"
 WORKDIR /app
 COPY ./requirements.txt /tmp/requirements.txt
 
-RUN pip install --no-cache-dir /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY ./llm_fusion_api /app/llm_fusion_api
 
 EXPOSE 8080
