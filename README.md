@@ -21,6 +21,8 @@
 | MiniMax | ✔️ | ❌ | ✔️ | ✔️ | ✔️ | ✔️ | ❌ | ✔️ | ❌ | ❌ | ❌ |
 | Zhipu | ❌ | ❌ | ✔️ | ✔️ | ✔️ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
+* System messages will be converted into user/assistant message pairs.
+
 ### Emebeddings
 
 | API | model | max_tokens |
