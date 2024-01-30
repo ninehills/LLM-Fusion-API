@@ -14,6 +14,14 @@ from llm_fusion_api.response import ErrorResponse
 
 logger = logging.getLogger(__name__)
 
+MODEL_ENDPOINT_MAP = {
+    "ernie-bot": "completions",
+    "ernie-bot-turbo": "eb-instant",
+    "ernie-bot-4": "completions_pro",
+    "ernie-bot-8k": "ernie_bot_8k",
+    "ernie-speed": "ernie_speed",
+}
+
 class Wenxin(ChatHandler, EmbeddingHandler):
     cached_token: str = ""
     cached_token_expires_at: int = 0
@@ -24,12 +32,14 @@ class Wenxin(ChatHandler, EmbeddingHandler):
 
     async def list_models(self) -> List[Model]:
         """List all models from Wenxin API"""
-        return [
-            Model(provider="wenxin", name="ernie-bot", type="chat"),
-            Model(provider="wenxin", name="ernie-bot-turbo", type="chat"),
-            Model(provider="wenxin", name="bloomz_7b1", type="chat"),
+        chat_models = [Model(provider="wenxin", name=name, type="chat") for name in MODEL_ENDPOINT_MAP]
+        embedding_models = [
             Model(provider="wenxin", name="embedding-v1", type="embedding"),
-        ]
+            Model(provider="wenxin", name="bge_large_zh", type="embedding"),
+            Model(provider="wenxin", name="bge_large_en", type="embedding"),
+            Model(provider="wenxin", name="tao_8k", type="embedding"),
+            ]
+        return chat_models + embedding_models
 
     async def get_token(self):
         url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials" +\
@@ -58,12 +68,7 @@ class Wenxin(ChatHandler, EmbeddingHandler):
         body = await request.json()
         new_body = convert_request(body)
 
-        if model == 'ernie-bot':
-            endpoint = "completions"
-        elif model == 'ernie-bot-turbo':
-            endpoint = "eb-instant"
-        else:
-            endpoint = model
+        endpoint = MODEL_ENDPOINT_MAP.get(model.lower(), model)
         url = f"https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{endpoint}"
         stream = body.get('stream', False)
         kwargs = dict(
@@ -76,7 +81,7 @@ class Wenxin(ChatHandler, EmbeddingHandler):
 
         if not stream:
             async with httpx.AsyncClient() as client:
-                response: httpx.Response = await client.post(**kwargs) # type: ignore
+                response: httpx.Response = await client.post(**kwargs, timeout=600) # type: ignore
 
             response.raise_for_status()
             res_body = response.json()
@@ -94,6 +99,7 @@ class Wenxin(ChatHandler, EmbeddingHandler):
         async def stream_generator():
             client = httpx.AsyncClient()
             first = True
+            completion_tokens = [0]
             async with client.stream(method='POST', **kwargs) as response: # type: ignore
                 async for line in response.aiter_lines():
                     if not line.startswith("data: "):
@@ -106,11 +112,13 @@ class Wenxin(ChatHandler, EmbeddingHandler):
                             "id": payload["id"],
                             "created": payload["created"],
                         }
-                        yield convert_sse_response(first_payload, model)
-                    yield convert_sse_response(payload, model)
+                        yield convert_sse_response(first_payload, model, completion_tokens)
+                    yield convert_sse_response(payload, model, completion_tokens)
             yield "[DONE]"
 
-        return EventSourceResponse(stream_generator())
+        r = EventSourceResponse(stream_generator())
+        r.ping_interval = 9999999
+        return r
 
     async def embeddings(self, request: Request, model: str) -> Response:
         """https://cloud.baidu.com/doc/WENXINWORKSHOP/s/alj562vvu
@@ -156,19 +164,10 @@ class Wenxin(ChatHandler, EmbeddingHandler):
 def convert_request(body):
     """Convert OpenAI request body to Wenxin format"""
     msg = []
+    system = ""
     if body['messages'][0]['role'] == 'system':
-        if body['messages'][0]['content'].strip() == '':
-            msg = body['messages'][1:]
-        else:
-            msg.append({
-                'role': 'user',
-                'content': body['messages'][0]['content']
-            })
-            msg.append({
-                'role': 'assistant',
-                'content': '收到'
-            })
-            msg.extend(body['messages'][1:])
+        system = body['messages'][0]['content']
+        msg = body['messages'][1:]
     else:
         msg = body['messages']
 
@@ -179,6 +178,10 @@ def convert_request(body):
     if "temperature" in body:
         # Wenxin temperature is between 0.001 and 1
         new["temperature"] = min(max(body["temperature"], 0.001), 1)
+    if system != "":
+        new["system"] = system
+    if "max_tokens" in body:
+        new["max_output_tokens"] = body["max_tokens"]
 
     return new
 
@@ -204,7 +207,7 @@ def convert_response(body, model):
         'usage': body['usage'],
     }
 
-def convert_sse_response(body, model):
+def convert_sse_response(body, model, last_completion_tokens):
     """Convert Wenxin SSE response to OpenAI format"""
     response =  {
         'id': body['id'],
@@ -217,8 +220,10 @@ def convert_sse_response(body, model):
                 'delta': {},
                 'finish_reason': None,
             }
-        ],
+        ]
     }
+    if body.get('usage'):
+        response['usage'] = body['usage']
 
     if body.get('is_end'):
         # stream end
@@ -235,4 +240,4 @@ def convert_sse_response(body, model):
         response['choices'][0]['delta'] = {
             'content': body['result'],
         }
-    return json.dumps(response, ensure_ascii=False)
+    return json.dumps(response, ensure_ascii=False).strip()

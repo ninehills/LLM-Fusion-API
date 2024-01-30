@@ -44,7 +44,7 @@ cp .env.example .env
 # edit .env to set OPENAI_API_KEY etc.
 
 # run the API
-uvicorn llm_fusion_api:app --reload
+./.venv/bin/uvicorn llm_fusion_api:app --reload
 ```
 
 ## Deploy
